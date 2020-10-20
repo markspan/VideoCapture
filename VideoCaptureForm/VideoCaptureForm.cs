@@ -49,9 +49,7 @@ namespace VideoCaptureForm
 
         private void VideoCaptureForm_Load(object sender, EventArgs e)
         {
-            bool isOpened = openCamera(0);            // open default camera
-            if (!isOpened) isOpened = openCamera(1);  // default camera in use? open auxilary camera
-
+            if (!openCamera(0)) _=openCamera(1);  // default camera in use? open auxilary camera
             RetrieveFrame.RunWorkerAsync();       // start importing frames and screen output
         }
 
@@ -80,13 +78,13 @@ namespace VideoCaptureForm
             {
                 _ = _capture.RetrieveMat();
             }
-            stopWatch.Stop();
+            stopWatch.Stop(); 
            
             _FPS = Math.Round(30000.0 / stopWatch.ElapsedMilliseconds);
 
             _capture.Fps = _FPS; // and set the **input** framerate to this (as-if that would work :))
 
-            ClientSize = new System.Drawing.Size(_capture.FrameWidth, _capture.FrameHeight);
+            this.ClientSize = new System.Drawing.Size(_capture.FrameWidth, _capture.FrameHeight);
             return true;
         }
 
