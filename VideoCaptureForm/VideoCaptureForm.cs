@@ -23,48 +23,54 @@ namespace VideoCaptureForm
 {
     public partial class VideoCaptureForm : Form
     {
-        private readonly VideoCapture capture; // usb camera source
-        private VideoWriter video;             // Videofile
-        private liblsl.StreamInfo inf;
-        private liblsl.StreamOutlet outl;
+        private readonly VideoCapture _capture; // usb camera source
+        private VideoWriter _video;             // Videofile
+        private liblsl.StreamInfo _inf;
+        private liblsl.StreamOutlet _outl;
 
-        double fps = 0;                        // calculated fps of input stream (camera_
-        long frameNumber = 0;                  // Framenumber IN FILE
-        Boolean Recording = false;             // is recording on?
-        string fileName = "";                  // Filename of output stream (mjpeg)
+        double _FPS = 0;                        // calculated fps of input stream (camera_
+        long _frameNumber = 0;                  // Framenumber IN FILE
+        Boolean _recording = false;             // is recording on?
+        string _fileName = "";                  // Filename of output stream (mjpeg)
 
 
         public VideoCaptureForm()
         {
             InitializeComponent();
 
-            capture = new VideoCapture();
+            _capture = new VideoCapture();
             _ = EnumerateNumberOfCameras(); // count number of attached cameras and create
                                             // menu items for each.
 
-            video = new VideoWriter();
-            inf = new liblsl.StreamInfo("VideoTimings " + DateTime.Now, "Markers", 1, 0, liblsl.channel_format_t.cf_string, "giu4569");
-            outl = new liblsl.StreamOutlet(inf);
+            _video = new VideoWriter();
+            _inf = new liblsl.StreamInfo("VideoTimings " + DateTime.Now, "Markers", 1, 0, liblsl.channel_format_t.cf_string, "giu4569");
+            _outl = new liblsl.StreamOutlet(_inf);
         }
 
         private void VideoCaptureForm_Load(object sender, EventArgs e)
         {
-            bool isopened = openCamera(0);            // open default camera
-            if (!isopened) isopened = openCamera(1);  // default camera in use? open auxilary camera
+            bool isOpened = openCamera(0);            // open default camera
+            if (!isOpened) isOpened = openCamera(1);  // default camera in use? open auxilary camera
 
-            backgroundWorker1.RunWorkerAsync();       // start importing frames and screen output
+            RetrieveFrame.RunWorkerAsync();       // start importing frames and screen output
         }
 
         private bool openCamera(int cam)
         {
-            capture.Open(cam, VideoCaptureAPIs.ANY);
-            if (!capture.IsOpened()) // this camera cannot be opened: not present or in use.
+            if (_capture.IsOpened())
+            {
+                //Close any opened capture device
+                _capture.Release();
+            }
+
+            _capture.Open(cam, VideoCaptureAPIs.ANY);
+            if (!_capture.IsOpened()) // this camera cannot be opened: not present or in use.
             {
                 return false;
             }
             // Camera could be opened: 
-            capture.Fps = 30;           // set its framerate to 30 (as-if that would work :))
-            _ = capture.RetrieveMat();  // first capture takes longer....
+            _capture.Fps = 30;           // set its framerate to 30 (as-if that would work :))
+            _ = _capture.RetrieveMat();  // first capture takes longer....
             Thread.Sleep(300);
 
             // fetch 30 frames and calculate the #frames per 1000ms
@@ -72,58 +78,30 @@ namespace VideoCaptureForm
             stopWatch.Start();
             for (int i = 0; i < 30; i++)
             {
-                _ = capture.RetrieveMat();
+                _ = _capture.RetrieveMat();
             }
             stopWatch.Stop();
            
-            fps = Math.Round(30000.0 / stopWatch.ElapsedMilliseconds);
+            _FPS = Math.Round(30000.0 / stopWatch.ElapsedMilliseconds);
 
-            capture.Fps = fps; // and set the **input** framerate to this (as-if that would work :))
+            _capture.Fps = _FPS; // and set the **input** framerate to this (as-if that would work :))
 
-            ClientSize = new System.Drawing.Size(capture.FrameWidth, capture.FrameHeight);
+            ClientSize = new System.Drawing.Size(_capture.FrameWidth, _capture.FrameHeight);
             return true;
         }
 
         private void VideoCaptureForm_FormClosing(object sender, FormClosingEventArgs e)
         {
 
-            backgroundWorker1.CancelAsync();
+            RetrieveFrame.CancelAsync();
             Thread.Sleep(300);
-            capture.Dispose();
-            video.Release();
-            video.Dispose();
+            _capture.Dispose();
+            _video.Release();
+            _video.Dispose();
         }
 
-        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
-        {
-            var bgWorker = (BackgroundWorker)sender;
-            while (!bgWorker.CancellationPending)
-            {
-                try
-                {
-                    using (var frameMat = capture.RetrieveMat())
-                    {
-                        if (Recording)
-                        {
-                            Cv2.PutText(frameMat, frameNumber++.ToString() + " FPS: " + fps.ToString(), new OpenCvSharp.Point(10, 13), HersheyFonts.HersheyPlain, 1, Scalar.Black);
-                            string[] sample = new string[1];
-                            sample[0] = new string('F', 1) + frameNumber.ToString();
-                            outl.push_sample(sample);
-                            if (video.IsOpened())
-                                video.Write(frameMat);
-                        }
-                        var frameBitmap = BitmapConverter.ToBitmap(frameMat);
-                        bgWorker.ReportProgress(0, frameBitmap);
-                    }
-                }
-                catch (Exception)
-                {
-                }
-                Thread.Sleep(10);
-            }
-        }
 
-        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void RetrieveFrame_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             var frameBitmap = (Bitmap)e.UserState;
             pictureBox1.Image?.Dispose();
@@ -136,12 +114,12 @@ namespace VideoCaptureForm
             if (name == "Recording")
             {
                 name = "Record";
-                Recording = false;
+                _recording = false;
             }
             else
             {
                 name = "Recording";
-                Recording = true;
+                _recording = true;
             }
             ((ToolStripMenuItem)sender).Text = name;
         }
@@ -155,7 +133,7 @@ namespace VideoCaptureForm
                 try
                 {
                     // Check if camera is available.
-                    noError = capture.Open(numberOfDevices, VideoCaptureAPIs.ANY);
+                    noError = _capture.Open(numberOfDevices, VideoCaptureAPIs.ANY);
                     if (noError) addMenu(numberOfDevices);
                     // Will crash if not available, hence try/catch.
                     // ...
@@ -166,7 +144,7 @@ namespace VideoCaptureForm
                 }
 
                 // If above call worked, we have found another camera.
-                capture.Release();
+                _capture.Release();
                 numberOfDevices++;
             }
             return numberOfDevices - 1;
@@ -187,21 +165,21 @@ namespace VideoCaptureForm
 
         private void fileNameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            SaveFileDialog GetSaveFile = new SaveFileDialog();
 
-            saveFileDialog1.Filter = "avi files (*.avi)|*.avi|All files (*.*)|*.*";
-            saveFileDialog1.FilterIndex = 1;
-            saveFileDialog1.RestoreDirectory = true;
+            GetSaveFile.Filter = "avi files (*.avi)|*.avi|All files (*.*)|*.*";
+            GetSaveFile.FilterIndex = 1;
+            GetSaveFile.RestoreDirectory = true;
 
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            if (GetSaveFile.ShowDialog() == DialogResult.OK)
             {
-                fileName = saveFileDialog1.FileName;
+                _fileName = GetSaveFile.FileName;
             }
-                ((ToolStripMenuItem)sender).Text = fileName;
+                ((ToolStripMenuItem)sender).Text = _fileName;
 
-            if (video.IsOpened()) video.Release();
-            video.Open(fileName, OpenCvSharp.FourCC.MJPG, Math.Max(5, fps), new OpenCvSharp.Size(capture.FrameWidth, capture.FrameHeight), true);
-            if (!video.IsOpened())
+            if (_video.IsOpened()) _video.Release();
+            _video.Open(_fileName, FourCC.MJPG, Math.Max(5, _FPS), new OpenCvSharp.Size(_capture.FrameWidth, _capture.FrameHeight), true);
+            if (!_video.IsOpened())
             {
                 Close();
                 return;
@@ -216,6 +194,35 @@ namespace VideoCaptureForm
             string Name = ((ToolStripMenuItem)sender).Name;
             int camera = Int32.Parse(Name.Remove(0, 7));
             openCamera(camera);
+        }
+
+        private void RetrieveFrame_DoWork(object sender, DoWorkEventArgs e)
+        {
+            var bgWorker = (BackgroundWorker)sender;
+            while (!bgWorker.CancellationPending)
+            {
+                try
+                {
+                    using (var frameMat = _capture.RetrieveMat())
+                    {
+                        if (_recording)
+                        {
+                            Cv2.PutText(frameMat, _frameNumber++.ToString() + " FPS: " + _FPS.ToString(), new OpenCvSharp.Point(10, 13), HersheyFonts.HersheyPlain, 1, Scalar.Black);
+                            string[] sample = new string[1];
+                            sample[0] = new string('F', 1) + _frameNumber.ToString();
+                            _outl.push_sample(sample);
+                            if (_video.IsOpened())
+                                _video.Write(frameMat);
+                        }
+                        var frameBitmap = BitmapConverter.ToBitmap(frameMat);
+                        bgWorker.ReportProgress(0, frameBitmap);
+                    }
+                }
+                catch (Exception)
+                {
+                }
+                Thread.Sleep(10);
+            }
         }
     }
 }
