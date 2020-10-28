@@ -5,12 +5,12 @@ namespace VideoCaptureForm
 {
     static class Program
     {
-        //[STAThread]
+        [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new VideoCaptureForm());
+            Application.Run(new ConfigurationForm());
         }
     }
 }

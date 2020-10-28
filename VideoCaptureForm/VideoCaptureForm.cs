@@ -31,25 +31,39 @@ namespace VideoCaptureForm
         double _FPS = 0;                        // calculated fps of input stream (camera_
         long _frameNumber = 0;                  // Framenumber IN FILE
         Boolean _recording = false;             // is recording on?
+
+        string _cameraName = "";
         string _fileName = "";                  // Filename of output stream (mjpeg)
+        string _streamName = "";
+        string _dataDir = "";
+        int _index = -1;
 
 
-        public VideoCaptureForm()
+        public VideoCaptureForm(int index,
+                                string cameraname,
+                                string filename,
+                                string streamname,
+                                string datadir)
         {
             InitializeComponent();
+            this.Text = cameraname;
+            _cameraName = cameraname;
+            _fileName = filename;
+            _streamName = streamname;
+            _dataDir = datadir;
+            _index = index;
 
             _capture = new VideoCapture();
-            _ = EnumerateNumberOfCameras(); // count number of attached cameras and create
-                                            // menu items for each.
 
             _video = new VideoWriter();
-            _inf = new liblsl.StreamInfo("VideoTimings " + DateTime.Now, "Markers", 1, 0, liblsl.channel_format_t.cf_string, "giu4569");
+            _inf = new liblsl.StreamInfo(_streamName, "Markers", 1, 0, liblsl.channel_format_t.cf_string);
             _outl = new liblsl.StreamOutlet(_inf);
         }
 
         private void VideoCaptureForm_Load(object sender, EventArgs e)
         {
-            if (!openCamera(0)) _=openCamera(1);  // default camera in use? open auxilary camera
+            openCamera(_index);
+            OpenVideoFileForWrite();
             RetrieveFrame.RunWorkerAsync();       // start importing frames and screen output
         }
 
@@ -78,8 +92,8 @@ namespace VideoCaptureForm
             {
                 _ = _capture.RetrieveMat();
             }
-            stopWatch.Stop(); 
-           
+            stopWatch.Stop();
+
             _FPS = Math.Round(30000.0 / stopWatch.ElapsedMilliseconds);
 
             _capture.Fps = _FPS; // and set the **input** framerate to this (as-if that would work :))
@@ -93,9 +107,9 @@ namespace VideoCaptureForm
 
             RetrieveFrame.CancelAsync();
             Thread.Sleep(300);
-            _capture.Dispose();
-            _video.Release();
-            _video.Dispose();
+            _capture?.Dispose();
+            _video?.Release();
+            _video?.Dispose();
         }
 
 
@@ -106,92 +120,24 @@ namespace VideoCaptureForm
             pictureBox1.Image = frameBitmap;
         }
 
-        private void recordToolStripMenuItem_Click(object sender, EventArgs e)
+
+        private void OpenVideoFileForWrite()
         {
-            string name = ((ToolStripMenuItem)sender).Text;
-            if (name == "Recording")
-            {
-                name = "Record";
-                _recording = false;
-            }
-            else
-            {
-                name = "Recording";
-                _recording = true;
-            }
-            ((ToolStripMenuItem)sender).Text = name;
-        }
-        private int EnumerateNumberOfCameras()
-        {
-            int numberOfDevices = 0;
-            bool noError = true;
+            if (_video.IsOpened())
+                _video.Release();
 
-            while (noError)
-            {
-                try
-                {
-                    // Check if camera is available.
-                    noError = _capture.Open(numberOfDevices, VideoCaptureAPIs.ANY);
-                    if (noError) addMenu(numberOfDevices);
-                    // Will crash if not available, hence try/catch.
-                    // ...
-                }
-                catch (Exception)
-                {
-                    noError = false;
-                }
+            string FullPath = _dataDir + "\\" + _fileName;
+            if (!FullPath.EndsWith(".avi")) FullPath += ".avi";
 
-                // If above call worked, we have found another camera.
-                _capture.Release();
-                numberOfDevices++;
-            }
-            return numberOfDevices - 1;
-        }
+            _video.Open(FullPath, FourCC.MJPG, Math.Max(5, _FPS), new OpenCvSharp.Size(_capture.FrameWidth, _capture.FrameHeight), true);
 
-        private void addMenu(int index)
-        {
-            System.Windows.Forms.ToolStripMenuItem item = new ToolStripMenuItem();
-            item.Checked = false;
-            item.CheckOnClick = true;
-
-            item.Name = "Camera " + index;
-            item.Size = new System.Drawing.Size(224, 26);
-            item.Text = item.Name;
-            item.Click += new System.EventHandler(this.Camera_Click);
-            this.cameraToolStripMenuItem.DropDownItems.Add(item);
-        }
-
-        private void fileNameToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SaveFileDialog GetSaveFile = new SaveFileDialog();
-
-            GetSaveFile.Filter = "avi files (*.avi)|*.avi|All files (*.*)|*.*";
-            GetSaveFile.FilterIndex = 1;
-            GetSaveFile.RestoreDirectory = true;
-
-            if (GetSaveFile.ShowDialog() == DialogResult.OK)
-            {
-                _fileName = GetSaveFile.FileName;
-            }
-                ((ToolStripMenuItem)sender).Text = _fileName;
-
-            if (_video.IsOpened()) _video.Release();
-            _video.Open(_fileName, FourCC.MJPG, Math.Max(5, _FPS), new OpenCvSharp.Size(_capture.FrameWidth, _capture.FrameHeight), true);
             if (!_video.IsOpened())
             {
+                MessageBox.Show("File Creation Error\n Cannot create " + FullPath, "Error", MessageBoxButtons.OK);
                 Close();
                 return;
             }
-        }
-
-        private void Camera_Click(object sender, EventArgs e)
-        {
-            foreach (ToolStripMenuItem item in this.cameraToolStripMenuItem.DropDownItems)
-                item.Checked = false;
-            ((ToolStripMenuItem)sender).Checked = true;
-            string Name = ((ToolStripMenuItem)sender).Name;
-            int camera = Int32.Parse(Name.Remove(0, 7));
-            openCamera(camera);
+            _recording = true;
         }
 
         private void RetrieveFrame_DoWork(object sender, DoWorkEventArgs e)
@@ -205,20 +151,30 @@ namespace VideoCaptureForm
                     {
                         if (_recording)
                         {
-                            Cv2.PutText(frameMat, _frameNumber++.ToString() + " FPS: " + _FPS.ToString(), new OpenCvSharp.Point(10, 13), HersheyFonts.HersheyPlain, 1, Scalar.Black);
+                            // Place Framenumber and FSP (as measured) left topcorner of the frame
+                            Cv2.PutText(frameMat, _fileName + " " + _frameNumber++.ToString() + " FPS: " + _FPS.ToString(), new OpenCvSharp.Point(10, 13), HersheyFonts.HersheyPlain, 1, Scalar.Black);
+
+                            // Create a Label for the marker used, containing framenumber. 
+                            // Only the timestamp is important here, as framenumbers mean nothing.
                             string[] sample = new string[1];
                             sample[0] = new string('F', 1) + _frameNumber.ToString();
+                            // Push the sample through LSL
                             _outl.push_sample(sample);
+                            // Write the frame to the file
                             if (_video.IsOpened())
                                 _video.Write(frameMat);
                         }
+                        // create bitmap from frame, and then show it on screen
                         var frameBitmap = BitmapConverter.ToBitmap(frameMat);
                         bgWorker.ReportProgress(0, frameBitmap);
                     }
                 }
                 catch (Exception)
                 {
+                    // Even if we mess up: continue
                 }
+                // Create some room for the guithread.
+                // 10 ms limits the framerate to a theoretical maximum of 100hz.
                 Thread.Sleep(10);
             }
         }
