@@ -9,17 +9,17 @@ namespace VideoCaptureForm
 {
     public partial class ConfigurationForm : Form
     {
-        private readonly VideoCapture _capture; // usb camera source
-        private readonly string[] _cameraList;
+        private VideoCapture _capture; // usb camera source
+
+        private string[] _cameraList;
         private List<CameraSourceSelector> _cameraControls;
         private string _dataPath;
         public ConfigurationForm()
         {
             InitializeComponent();
-            _capture = new VideoCapture();
             _cameraList = ListOfAttachedCameras();
             _cameraControls = new List<CameraSourceSelector>();
-            CameraInfo.CameraName.Text = "No Camera Found";
+
             DataDirSet.Description =
             "Select the directory that you want to use as the default data directory.";
 
@@ -35,7 +35,7 @@ namespace VideoCaptureForm
 
             if (_cameraList.Length == 0)
             {
-                DialogResult OK = MessageBox.Show(
+                MessageBox.Show(
                     "No Compatible cameras were found on this machine",
                     "ERROR",
                     MessageBoxButtons.OK);
@@ -53,24 +53,15 @@ namespace VideoCaptureForm
             foreach (string cam in _cameraList)
             {
                 CameraSourceSelector thisCam;
-                if (camIndex > 1)
-                {
-                    thisCam = new CameraSourceSelector();
-                    thisCam.CameraName.Text = _cameraList[camIndex - 1];
-                    thisCam.FileName.Text = _cameraList[camIndex - 1] + id;
-                    thisCam.StreamName.Text = _cameraList[camIndex - 1] + id;
-                    thisCam.Location = new System.Drawing.Point(10, 20 * camIndex);
-                    thisCam.Check.Checked = true;
-                    _cameraControls.Add(thisCam);
-                    Camerabox.Controls.Add(thisCam);
-                }
-                else
-                {
-                    CameraInfo.CameraName.Text = _cameraList[camIndex - 1];
-                    CameraInfo.FileName.Text = _cameraList[camIndex - 1] + id;
-                    CameraInfo.StreamName.Text = _cameraList[camIndex - 1] + id;
-                    _cameraControls.Add(CameraInfo);
-                }
+                thisCam = new CameraSourceSelector();
+                thisCam.CameraName.Text = _cameraList[camIndex - 1];
+                thisCam.FileName.Text = _cameraList[camIndex - 1] + id;
+                thisCam.StreamName.Text = _cameraList[camIndex - 1] + id;
+                thisCam.Location = new System.Drawing.Point(10, 20 * camIndex);
+                thisCam.Check.Checked = true;
+                _cameraControls.Add(thisCam);
+                Camerabox.Controls.Add(thisCam);
+
                 camIndex++;
             }
 

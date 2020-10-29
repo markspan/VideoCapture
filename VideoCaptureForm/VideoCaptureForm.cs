@@ -32,11 +32,10 @@ namespace VideoCaptureForm
         long _frameNumber = 0;                  // Framenumber IN FILE
         Boolean _recording = false;             // is recording on?
 
-        string _cameraName = "";
-        string _fileName = "";                  // Filename of output stream (mjpeg)
-        string _streamName = "";
-        string _dataDir = "";
-        int _index = -1;
+        readonly string _fileName = "";                  // Filename of output stream (mjpeg)
+        readonly string _streamName = "";
+        readonly string _dataDir = "";
+        readonly int _index = -1;
 
 
         public VideoCaptureForm(int index,
@@ -47,7 +46,6 @@ namespace VideoCaptureForm
         {
             InitializeComponent();
             this.Text = cameraname;
-            _cameraName = cameraname;
             _fileName = filename;
             _streamName = streamname;
             _dataDir = datadir;
@@ -62,12 +60,12 @@ namespace VideoCaptureForm
 
         private void VideoCaptureForm_Load(object sender, EventArgs e)
         {
-            openCamera(_index);
+            OpenCamera(_index);
             OpenVideoFileForWrite();
             RetrieveFrame.RunWorkerAsync();       // start importing frames and screen output
         }
 
-        private bool openCamera(int cam)
+        private bool OpenCamera(int cam)
         {
             if (_capture.IsOpened())
             {

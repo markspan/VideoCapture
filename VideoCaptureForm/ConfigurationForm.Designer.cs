@@ -30,7 +30,6 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ConfigurationForm));
             this.Camerabox = new System.Windows.Forms.GroupBox();
-            this.CameraInfo = new CameraSourceSelector();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
@@ -46,8 +45,7 @@
             // 
             // Camerabox
             // 
-            this.Camerabox.Controls.Add(this.CameraInfo);
-            this.Camerabox.Controls.Add(this.label3);
+           this.Camerabox.Controls.Add(this.label3);
             this.Camerabox.Controls.Add(this.label2);
             this.Camerabox.Controls.Add(this.label1);
             this.Camerabox.Location = new System.Drawing.Point(23, 28);
@@ -56,14 +54,7 @@
             this.Camerabox.TabIndex = 1;
             this.Camerabox.TabStop = false;
             this.Camerabox.Text = "Cameras";
-            // 
-            // CameraInfo
-            // 
-            this.CameraInfo.Location = new System.Drawing.Point(6, 45);
-            this.CameraInfo.Name = "CameraInfo";
-            this.CameraInfo.Size = new System.Drawing.Size(983, 53);
-            this.CameraInfo.TabIndex = 3;
-            // 
+          // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -174,7 +165,6 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.FolderBrowserDialog DataDirSet;
         private System.Windows.Forms.Button SetDataDir;
-        private CameraSourceSelector CameraInfo;
         public System.Windows.Forms.Label Dir;
     }
 }
