@@ -47,18 +47,18 @@ namespace VideoCaptureForm
             Camerabox.SuspendLayout();
             SuspendLayout();
 
+            string id = DateTime.Now.ToString("yyddMMhhmm");
             int camIndex = 1;
+
             foreach (string cam in _cameraList)
             {
                 CameraSourceSelector thisCam;
                 if (camIndex > 1)
                 {
                     thisCam = new CameraSourceSelector();
-
-                    DateTime id = DateTime.Now;
                     thisCam.CameraName.Text = _cameraList[camIndex - 1];
-                    thisCam.FileName.Text = _cameraList[camIndex - 1] + id.ToString("yyddMMhhmm");
-                    thisCam.StreamName.Text = _cameraList[camIndex - 1] + id.ToString("yyddMMhhmm");
+                    thisCam.FileName.Text = _cameraList[camIndex - 1] + id;
+                    thisCam.StreamName.Text = _cameraList[camIndex - 1] + id;
                     thisCam.Location = new System.Drawing.Point(10, 20 * camIndex);
                     thisCam.Check.Checked = true;
                     _cameraControls.Add(thisCam);
@@ -66,10 +66,9 @@ namespace VideoCaptureForm
                 }
                 else
                 {
-                    DateTime id = DateTime.Now;
                     CameraInfo.CameraName.Text = _cameraList[camIndex - 1];
-                    CameraInfo.FileName.Text = _cameraList[camIndex - 1] + id.ToString("yyddMMhhmm");
-                    CameraInfo.StreamName.Text = _cameraList[camIndex - 1] + id.ToString("yyddMMhhmm");
+                    CameraInfo.FileName.Text = _cameraList[camIndex - 1] + id;
+                    CameraInfo.StreamName.Text = _cameraList[camIndex - 1] + id;
                     _cameraControls.Add(CameraInfo);
                 }
                 camIndex++;
