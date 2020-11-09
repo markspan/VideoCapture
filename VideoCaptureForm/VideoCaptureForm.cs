@@ -28,14 +28,14 @@ namespace VideoCaptureForm
         private liblsl.StreamInfo _inf;
         private liblsl.StreamOutlet _outl;
 
-        double _FPS = 0;                        // calculated fps of input stream (camera_
-        long _frameNumber = 0;                  // Framenumber IN FILE
-        Boolean _recording = false;             // is recording on?
+        private double _FPS = 0;                        // calculated fps of input stream (camera_
+        private long _frameNumber = 0;                  // Framenumber IN FILE
+        private Boolean _recording = false;             // is recording on?
 
-        readonly string _fileName = "";                  // Filename of output stream (mjpeg)
-        readonly string _streamName = "";
-        readonly string _dataDir = "";
-        readonly int _index = -1;
+        private readonly string _fileName = "";                  // Filename of output stream (mjpeg)
+        private readonly string _streamName = "";
+        private readonly string _dataDir = "";
+        private readonly int _index = -1;
 
 
         public VideoCaptureForm(int index,
@@ -52,9 +52,9 @@ namespace VideoCaptureForm
             _index = index;
 
             _capture = new VideoCapture();
-
             _video = new VideoWriter();
-            _inf = new liblsl.StreamInfo(_streamName, "Markers", 1, 0, liblsl.channel_format_t.cf_string);
+
+            _inf = new liblsl.StreamInfo(_streamName, "Markers", 1, 0, liblsl.channel_format_t.cf_string, DateTime.Now.ToString());
             _outl = new liblsl.StreamOutlet(_inf);
         }
 
@@ -76,12 +76,13 @@ namespace VideoCaptureForm
             _capture.Open(cam, VideoCaptureAPIs.ANY);
             if (!_capture.IsOpened()) // this camera cannot be opened: not present or in use.
             {
+                Console.WriteLine("Camera " + cam + " Cannot open.....\n");
                 return false;
             }
             // Camera could be opened: 
             _capture.Fps = 30;           // set its framerate to 30 (as-if that would work :))
             _ = _capture.RetrieveMat();  // first capture takes longer....
-            Thread.Sleep(300);
+            Thread.Sleep(100);
 
             // fetch 30 frames and calculate the #frames per 1000ms
             Stopwatch stopWatch = new Stopwatch();
@@ -155,7 +156,7 @@ namespace VideoCaptureForm
                             // Create a Label for the marker used, containing framenumber. 
                             // Only the timestamp is important here, as framenumbers mean nothing.
                             string[] sample = new string[1];
-                            sample[0] = new string('F', 1) + _frameNumber.ToString();
+                            sample[0] = _frameNumber.ToString();
                             // Push the sample through LSL
                             _outl.push_sample(sample);
                             // Write the frame to the file
@@ -170,10 +171,11 @@ namespace VideoCaptureForm
                 catch (Exception)
                 {
                     // Even if we mess up: continue
+                    Console.WriteLine("Missed???\n");
                 }
                 // Create some room for the guithread.
                 // 10 ms limits the framerate to a theoretical maximum of 100hz.
-                Thread.Sleep(10);
+                Thread.Sleep(1);
             }
         }
     }

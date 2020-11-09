@@ -46,9 +46,9 @@
             this.Check.AutoSize = true;
             this.Check.Location = new System.Drawing.Point(9, 15);
             this.Check.Name = "Check";
-            this.Check.Size = new System.Drawing.Size(104, 24);
+            this.Check.Size = new System.Drawing.Size(95, 24);
             this.Check.TabIndex = 1;
-            this.Check.Text = "Camera 1";
+            this.Check.Text = "Camera ";
             this.Check.UseVisualStyleBackColor = true;
             // 
             // FileName

@@ -9,10 +9,9 @@ namespace VideoCaptureForm
 {
     public partial class ConfigurationForm : Form
     {
-        private VideoCapture _capture; // usb camera source
 
-        private string[] _cameraList;
-        private List<CameraSourceSelector> _cameraControls;
+        private readonly string[] _cameraList;
+        private readonly List<CameraSourceSelector> _cameraControls;
         private string _dataPath;
         public ConfigurationForm()
         {
@@ -29,7 +28,7 @@ namespace VideoCaptureForm
             // Default to the My Documents folder.
             // Could read this in from a JSON file to be "Persistent"?
 
-            DataDirSet.RootFolder = Environment.SpecialFolder.Desktop;// Personal;
+            DataDirSet.RootFolder =  Environment.SpecialFolder.MyComputer;
             _dataPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             Dir.Text = _dataPath;
 
@@ -54,10 +53,11 @@ namespace VideoCaptureForm
             {
                 CameraSourceSelector thisCam;
                 thisCam = new CameraSourceSelector();
+                thisCam.Check.Text += camIndex.ToString();
                 thisCam.CameraName.Text = _cameraList[camIndex - 1];
-                thisCam.FileName.Text = _cameraList[camIndex - 1] + id;
-                thisCam.StreamName.Text = _cameraList[camIndex - 1] + id;
-                thisCam.Location = new System.Drawing.Point(10, 20 * camIndex);
+                thisCam.FileName.Text = "cam" + camIndex;//_cameraList[camIndex - 1] + id;
+                thisCam.StreamName.Text = "cam" + camIndex;//_cameraList[camIndex - 1] + id;
+                thisCam.Location = new System.Drawing.Point(10, 30 * camIndex);
                 thisCam.Check.Checked = true;
                 _cameraControls.Add(thisCam);
                 Camerabox.Controls.Add(thisCam);
@@ -68,7 +68,7 @@ namespace VideoCaptureForm
             Camerabox.ResumeLayout(false);
             ResumeLayout(false);
         }
-        public static string[] ListOfAttachedCameras()
+        private static string[] ListOfAttachedCameras()
         {
             var cameras = new List<string>();
             var attributes = new MediaAttributes(1);
@@ -85,17 +85,23 @@ namespace VideoCaptureForm
         private void OKButton_Click(object sender, EventArgs e)
         {
             int thiscamIndex = 0;
+            System.Drawing.Color orig = BackColor;
             foreach (CameraSourceSelector Cam in _cameraControls)
             {
                 if (Cam.Check.Checked)
                 {
+                    BackColor = System.Drawing.Color.AntiqueWhite;
+                    Invalidate();
                     VideoCaptureForm CamForm = new VideoCaptureForm(thiscamIndex,
                                                     Cam.CameraName.Text,
                                                     Cam.FileName.Text,
                                                     Cam.StreamName.Text,
                                                     _dataPath);
                     CamForm.Show();
+                    BackColor = orig;
+                    
                 }
+                thiscamIndex++;
             }
         }
 

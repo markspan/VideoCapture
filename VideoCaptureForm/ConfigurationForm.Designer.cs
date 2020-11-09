@@ -45,7 +45,7 @@
             // 
             // Camerabox
             // 
-           this.Camerabox.Controls.Add(this.label3);
+            this.Camerabox.Controls.Add(this.label3);
             this.Camerabox.Controls.Add(this.label2);
             this.Camerabox.Controls.Add(this.label1);
             this.Camerabox.Location = new System.Drawing.Point(23, 28);
@@ -54,7 +54,7 @@
             this.Camerabox.TabIndex = 1;
             this.Camerabox.TabStop = false;
             this.Camerabox.Text = "Cameras";
-          // 
+            // 
             // label3
             // 
             this.label3.AutoSize = true;
@@ -94,6 +94,7 @@
             // 
             // CnclButton
             // 
+            this.CnclButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.CnclButton.Location = new System.Drawing.Point(120, 26);
             this.CnclButton.Name = "CnclButton";
             this.CnclButton.Size = new System.Drawing.Size(114, 33);
@@ -118,9 +119,9 @@
             // 
             // SetDataDir
             // 
-            this.SetDataDir.Location = new System.Drawing.Point(962, 263);
+            this.SetDataDir.Location = new System.Drawing.Point(314, 259);
             this.SetDataDir.Name = "SetDataDir";
-            this.SetDataDir.Size = new System.Drawing.Size(29, 27);
+            this.SetDataDir.Size = new System.Drawing.Size(29, 34);
             this.SetDataDir.TabIndex = 4;
             this.SetDataDir.Text = "D";
             this.SetDataDir.UseVisualStyleBackColor = true;
@@ -129,7 +130,7 @@
             // Dir
             // 
             this.Dir.AutoSize = true;
-            this.Dir.Location = new System.Drawing.Point(570, 266);
+            this.Dir.Location = new System.Drawing.Point(349, 266);
             this.Dir.Name = "Dir";
             this.Dir.Size = new System.Drawing.Size(72, 20);
             this.Dir.TabIndex = 5;
@@ -139,13 +140,16 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.CancelButton = this.CnclButton;
             this.ClientSize = new System.Drawing.Size(1037, 325);
             this.Controls.Add(this.Dir);
             this.Controls.Add(this.SetDataDir);
             this.Controls.Add(this.ButtonsBox);
             this.Controls.Add(this.Camerabox);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "ConfigurationForm";
+            this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "SyncVideo";
             this.Camerabox.ResumeLayout(false);
             this.Camerabox.PerformLayout();
