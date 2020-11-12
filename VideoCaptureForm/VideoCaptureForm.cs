@@ -61,7 +61,7 @@ namespace VideoCaptureForm
         private void VideoCaptureForm_Load(object sender, EventArgs e)
         {
             OpenCamera(_index);
-            OpenVideoFileForWrite();
+            //OpenVideoFileForWrite();
             RetrieveFrame.RunWorkerAsync();       // start importing frames and screen output
         }
 
@@ -120,23 +120,31 @@ namespace VideoCaptureForm
         }
 
 
-        private void OpenVideoFileForWrite()
+        public bool StartRecording()
         {
-            if (_video.IsOpened())
-                _video.Release();
-
-            string FullPath = _dataDir + "\\" + _fileName;
-            if (!FullPath.EndsWith(".avi")) FullPath += ".avi";
-
-            _video.Open(FullPath, FourCC.MJPG, Math.Max(5, _FPS), new OpenCvSharp.Size(_capture.FrameWidth, _capture.FrameHeight), true);
-
-            if (!_video.IsOpened())
+            try
             {
-                MessageBox.Show("File Creation Error\n Cannot create " + FullPath, "Error", MessageBoxButtons.OK);
-                Close();
-                return;
+                if (_video.IsOpened())
+                    _video.Release();
+
+                string FullPath = _dataDir + "\\" + _fileName;
+                if (!FullPath.EndsWith(".avi")) FullPath += ".avi";
+
+                _video.Open(FullPath, FourCC.MJPG, Math.Max(5, _FPS), new OpenCvSharp.Size(_capture.FrameWidth, _capture.FrameHeight), true);
+
+                if (!_video.IsOpened())
+                {
+                    MessageBox.Show("File Creation Error\n Cannot create " + FullPath, "Error", MessageBoxButtons.OK);
+                    Close();
+                    return false;
+                }
+                _recording = true;
+                return true;
             }
-            _recording = true;
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private void RetrieveFrame_DoWork(object sender, DoWorkEventArgs e)
@@ -175,7 +183,7 @@ namespace VideoCaptureForm
                 }
                 // Create some room for the guithread.
                 // 10 ms limits the framerate to a theoretical maximum of 100hz.
-                Thread.Sleep(1);
+                Thread.Sleep(10);
             }
         }
     }

@@ -12,12 +12,14 @@ namespace VideoCaptureForm
 
         private readonly string[] _cameraList;
         private readonly List<CameraSourceSelector> _cameraControls;
+        private readonly List<VideoCaptureForm> _captures;
         private string _dataPath;
         public ConfigurationForm()
         {
             InitializeComponent();
             _cameraList = ListOfAttachedCameras();
             _cameraControls = new List<CameraSourceSelector>();
+            _captures = new List<VideoCaptureForm>();
 
             DataDirSet.Description =
             "Select the directory that you want to use as the default data directory.";
@@ -28,7 +30,7 @@ namespace VideoCaptureForm
             // Default to the My Documents folder.
             // Could read this in from a JSON file to be "Persistent"?
 
-            DataDirSet.RootFolder =  Environment.SpecialFolder.MyComputer;
+            DataDirSet.RootFolder = Environment.SpecialFolder.MyComputer;
             _dataPath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
             Dir.Text = _dataPath;
 
@@ -84,30 +86,52 @@ namespace VideoCaptureForm
 
         private void OKButton_Click(object sender, EventArgs e)
         {
-            int thiscamIndex = 0;
-            System.Drawing.Color orig = BackColor;
-            foreach (CameraSourceSelector Cam in _cameraControls)
+            try
             {
-                if (Cam.Check.Checked)
+                int thiscamIndex = 0;
+                System.Drawing.Color orig = BackColor;
+                foreach (CameraSourceSelector Cam in _cameraControls)
                 {
-                    BackColor = System.Drawing.Color.AntiqueWhite;
-                    Invalidate();
-                    VideoCaptureForm CamForm = new VideoCaptureForm(thiscamIndex,
-                                                    Cam.CameraName.Text,
-                                                    Cam.FileName.Text,
-                                                    Cam.StreamName.Text,
-                                                    _dataPath);
-                    CamForm.Show();
-                    BackColor = orig;
-                    
+                    if (Cam.Check.Checked)
+                    {
+                        BackColor = System.Drawing.Color.AntiqueWhite;
+                        Invalidate();
+                        _captures.Add(new VideoCaptureForm(thiscamIndex,
+                                                        Cam.CameraName.Text,
+                                                        Cam.FileName.Text,
+                                                        Cam.StreamName.Text,
+                                                        _dataPath));
+                        _captures.Last().Show();
+                        //CamForm.Show();
+                        BackColor = orig;
+
+                    }
+                    thiscamIndex++;
                 }
-                thiscamIndex++;
+                OKButton.Enabled = false;
+                StartRecording.Enabled = true;
+                CnclButton.Enabled = true;
+                Camerabox.Enabled = false;
+                SetDataDir.Enabled = false;
+            }
+            catch (Exception)
+            {
+                OKButton.Enabled = true;
+                StartRecording.Enabled = false;
+                CnclButton.Enabled = false;
+                Camerabox.Enabled = true;
+                SetDataDir.Enabled = true;
             }
         }
 
         private void CnclButton_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            OKButton.Enabled = true;
+            StartRecording.Enabled = false;
+            CnclButton.Enabled = false;
+            Camerabox.Enabled = true;
+            SetDataDir.Enabled = true;
+            _captures.Clear();
         }
 
         private void SetDataDir_Click(object sender, EventArgs e)
@@ -117,6 +141,19 @@ namespace VideoCaptureForm
             {
                 _dataPath = DataDirSet.SelectedPath;
                 Dir.Text = _dataPath;
+            }
+        }
+
+        private void StartRecording_Click(object sender, EventArgs e)
+        {
+            OKButton.Enabled = false;
+            StartRecording.Enabled = false;
+            CnclButton.Enabled = true;
+            Camerabox.Enabled = false;
+            SetDataDir.Enabled = false;
+            foreach (VideoCaptureForm v in _captures)
+            {
+                bool succes = v.StartRecording();
             }
         }
     }

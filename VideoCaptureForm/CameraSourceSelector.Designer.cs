@@ -75,7 +75,7 @@
             this.Controls.Add(this.Check);
             this.Controls.Add(this.CameraName);
             this.Name = "CameraSourceSelector";
-            this.Size = new System.Drawing.Size(973, 53);
+            this.Size = new System.Drawing.Size(987, 53);
             this.ResumeLayout(false);
             this.PerformLayout();
 
