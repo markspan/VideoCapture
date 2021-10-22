@@ -73,7 +73,7 @@ namespace VideoCaptureForm
                 _capture.Release();
             }
 
-            _capture.Open(cam, VideoCaptureAPIs.ANY);
+            _capture.Open(cam, VideoCaptureAPIs.DSHOW);
             if (!_capture.IsOpened()) // this camera cannot be opened: not present or in use.
             {
                 Console.WriteLine("Camera " + cam + " Cannot open.....\n");
@@ -154,6 +154,7 @@ namespace VideoCaptureForm
             {
                 try
                 {
+                    _capture.Grab();
                     using (var frameMat = _capture.RetrieveMat())
                     {
                         if (_recording)
