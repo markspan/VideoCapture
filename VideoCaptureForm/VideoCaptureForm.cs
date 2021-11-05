@@ -141,10 +141,10 @@ namespace VideoCaptureForm
                     if (v > 1)
                     {
                         for (int i = v - 1; i >= 1; i--)
-                            System.IO.File.Move(OPath + i + ".avi", OPath + (i + 1) + ".avi");
+                            File.Move(OPath + i + ".avi", OPath + (i + 1) + ".avi");
                     }
 
-                    System.IO.File.Move(FullPath + ".avi", FullPath + ".old1.avi");
+                    File.Move(FullPath + ".avi", FullPath + ".old1.avi");
                 }
 
                 _video.Open(FullPath+".avi" , FourCC.MJPG, Math.Max(5, _FPS), new OpenCvSharp.Size(_capture.FrameWidth, _capture.FrameHeight), true);
