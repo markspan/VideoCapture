@@ -161,7 +161,6 @@ namespace VideoCaptureForm
             catch (Exception E)
             {
                 throw new Exception(E.Message);
-                return false;
             }
         }
         public bool StopRecording()
