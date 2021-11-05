@@ -1,19 +1,18 @@
-﻿using System;
+﻿using SharpDX.MediaFoundation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using OpenCvSharp;
-using SharpDX.MediaFoundation;
 
 namespace VideoCaptureForm
 {
     public partial class ConfigurationForm : Form
     {
-
         private readonly string[] _cameraList;
         private readonly List<CameraSourceSelector> _cameraControls;
         private readonly List<VideoCaptureForm> _captures;
         private string _dataPath;
+
         public ConfigurationForm()
         {
             InitializeComponent();
@@ -43,6 +42,7 @@ namespace VideoCaptureForm
             }
             PopulateCameraGUI();
         }
+
         private void PopulateCameraGUI()
         {
             Camerabox.SuspendLayout();
@@ -70,6 +70,7 @@ namespace VideoCaptureForm
             Camerabox.ResumeLayout(false);
             ResumeLayout(false);
         }
+
         private static string[] ListOfAttachedCameras()
         {
             var cameras = new List<string>();
@@ -104,7 +105,6 @@ namespace VideoCaptureForm
                         _captures.Last().Show();
                         //CamForm.Show();
                         BackColor = orig;
-
                     }
                     thiscamIndex++;
                 }
@@ -126,12 +126,17 @@ namespace VideoCaptureForm
 
         private void CnclButton_Click(object sender, EventArgs e)
         {
-            OKButton.Enabled = true;
-            StartRecording.Enabled = false;
+
+            OKButton.Enabled = false;
+            StartRecording.Enabled = true;
             CnclButton.Enabled = false;
             Camerabox.Enabled = true;
             SetDataDir.Enabled = true;
-            _captures.Clear();
+            foreach (VideoCaptureForm v in _captures)
+            {
+                bool succes = v.StopRecording();
+            }
+            //_captures.Clear();
         }
 
         private void SetDataDir_Click(object sender, EventArgs e)
@@ -158,4 +163,3 @@ namespace VideoCaptureForm
         }
     }
 }
-

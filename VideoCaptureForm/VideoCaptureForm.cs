@@ -14,6 +14,7 @@ using System.Diagnostics;       // Stopwatch
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
+using System.IO;
 using LSL;                      // labstreaminglayer
 using OpenCvSharp;              // for videocapture and videowriter
 using OpenCvSharp.Extensions;   // for bitmapconverter
@@ -80,7 +81,7 @@ namespace VideoCaptureForm
                 return false;
             }
             // Camera could be opened: 
-            _capture.Fps = 30;           // set its framerate to 30 (as-if that would work :))
+            _capture.Fps = 60;           // set its framerate to 60 (as-if that would work :))
             _ = _capture.RetrieveMat();  // first capture takes longer....
             Thread.Sleep(100);
 
@@ -128,17 +129,46 @@ namespace VideoCaptureForm
                     _video.Release();
 
                 string FullPath = _dataDir + "\\" + _fileName;
-                if (!FullPath.EndsWith(".avi")) FullPath += ".avi";
+                if (FullPath.EndsWith(".avi")) FullPath = FullPath.Substring(FullPath.Length - 4, 4);
 
-                _video.Open(FullPath, FourCC.MJPG, Math.Max(5, _FPS), new OpenCvSharp.Size(_capture.FrameWidth, _capture.FrameHeight), true);
+                if (File.Exists(FullPath + ".avi")) // Rename all old files to older numbers.
+                {
+                    string OPath = FullPath + ".old";
+
+                    int v = 1;
+                    while (File.Exists(OPath + v + ".avi"))
+                        v = v + 1;
+                    if (v > 1)
+                    {
+                        for (int i = v - 1; i >= 1; i--)
+                            System.IO.File.Move(OPath + i + ".avi", OPath + (i + 1) + ".avi");
+                    }
+
+                    System.IO.File.Move(FullPath + ".avi", FullPath + ".old1.avi");
+                }
+
+                _video.Open(FullPath+".avi" , FourCC.MJPG, Math.Max(5, _FPS), new OpenCvSharp.Size(_capture.FrameWidth, _capture.FrameHeight), true);
 
                 if (!_video.IsOpened())
                 {
-                    MessageBox.Show("File Creation Error\n Cannot create " + FullPath, "Error", MessageBoxButtons.OK);
+                    MessageBox.Show("File Creation Error\n Cannot create " + FullPath+".avi", "Error", MessageBoxButtons.OK);
                     Close();
                     return false;
                 }
                 _recording = true;
+                return true;
+            }
+            catch (Exception E)
+            {
+                throw new Exception(E.Message);
+                return false;
+            }
+        }
+        public bool StopRecording()
+        {
+            try
+            {
+                _recording = false;
                 return true;
             }
             catch (Exception)
@@ -146,7 +176,6 @@ namespace VideoCaptureForm
                 return false;
             }
         }
-
         private void RetrieveFrame_DoWork(object sender, DoWorkEventArgs e)
         {
             var bgWorker = (BackgroundWorker)sender;
